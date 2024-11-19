@@ -149,7 +149,7 @@ class CVEX:
                                 f"{image}/{version}/{instance}",
                                 image,
                                 version,
-                                VMTemplate.VM_TYPE_LINUX),
+                                VMTemplate.VM_TYPE_UBUNTU),
                             "stub",
                             destination=destination)
                     if vm.exists():
@@ -172,7 +172,7 @@ class CVEX:
         else:
             is_async = False
         # Run strace with the commands, otherwise the Linux agent may detect them too late
-        if vm.vm_type == VMTemplate.VM_TYPE_LINUX and vm.trace:
+        if isinstance(vm, LinuxVM) and vm.trace:
             r = re.search(vm.trace, command)
             if r:
                 process_name = r.group(0)
@@ -236,7 +236,7 @@ class CVEX:
             router = None
         cve_name = Path(args.cve).absolute().name
         for vm_template in self.vm_templates:
-            if vm_template.vm_type == VMTemplate.VM_TYPE_LINUX:
+            if vm_template.is_linux():
                 vm = LinuxVM(vms, vm_template, cve_name, keep=args.keep, new=args.new)
             elif vm_template.vm_type == VMTemplate.VM_TYPE_WINDOWS:
                 vm = WindowsVM(vms, vm_template, cve_name, args.keep, new=args.new)
@@ -252,7 +252,7 @@ class CVEX:
                 if not vm.is_created():
                     disk_size_needed += LINUX_VAGRANT_BOX_SIZE + ROUTER_VM_SIZE
                 ram_needed += LINUX_VM_RAM
-            elif vm.vm_type == VMTemplate.VM_TYPE_LINUX:
+            elif isinstance(vm, LinuxVM):
                 if not vm.is_created():
                     disk_size_needed += LINUX_VAGRANT_BOX_SIZE + UBUNTU_VM_SIZE
                 ram_needed += LINUX_VM_RAM

@@ -8,6 +8,8 @@ import vagrant
 
 from cvex.logger import get_logger
 
+# Fix bug in paramiko ssh key selection
+paramiko.transport.Transport._preferred_pubkeys = ('ssh-rsa', *paramiko.transport.Transport._preferred_pubkeys)
 
 class SSH:
     log: logging.Logger
