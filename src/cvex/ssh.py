@@ -18,7 +18,7 @@ class SSH:
         self.ssh = self._ssh_connect(vm)
         self.vm = vm
 
-    def _reconnect(self, retries=5, delay=10):
+    def _reconnect(self, retries=5, delay=2):
         for attempt in range(retries):
             try:
                 self.log.info("Reconnecting to SSH (Attempt %d/%d)...", attempt + 1, retries)
@@ -28,9 +28,24 @@ class SSH:
                 return
             except Exception as e:
                 self.log.warning("Reconnection failed: %s. Retrying in %d seconds...", e, delay)
+                time.sleep(delay)
 
         raise RuntimeError(f"Failed to reconnect to SSH after {retries} attempts.")
 
+    def _reconnect(self, retries=5, delay=2):
+        for attempt in range(retries):
+            try:
+                self.log.info("Reconnecting to SSH (Attempt %d/%d)...", attempt + 1, retries)
+                self.ssh.close()  # Close the existing connection
+                self.ssh = self._ssh_connect(self.vm)  # Re-establish the connection
+                self.log.info("Reconnection successful!")
+                return
+            except Exception as e:
+                self.log.warning("Reconnection failed: %s. Retrying in %d seconds...", e, delay)
+                time.sleep(delay)
+
+        raise RuntimeError(f"Failed to reconnect to SSH after {retries} attempts.")
+    
     def _ssh_connect(self, vm: vagrant.Vagrant) -> fabric.Connection:
         self.log.debug("Retrieving SSH configuration...")
         hostname = vm.hostname()
@@ -121,7 +136,7 @@ class SSH:
             if "Socket is closed" in str(e):
                 self.log.warning("SSH connection lost during upload. Attempting to reconnect...")
                 self._reconnect()
-                self.upload_file(local, dest)
+                self.put(local,dest)
             else:
                 raise
 
@@ -136,6 +151,6 @@ class SSH:
             if "Socket is closed" in str(e):
                 self.log.warning("SSH connection lost during download. Attempting to reconnect...")
                 self._reconnect()
-                self.download_file(local, dest)
+                self.get(dest,local)
             else:
                 raise
