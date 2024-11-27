@@ -360,7 +360,7 @@ class VM:
 
                 # Always delete the snapshot after reverting to INIT_SNAPSHOT,
                 # otherwise deleting may take too much time
-                if self.new:
+                if self.new and snapshot in snapshots:
                     self.log.info("Deleting snapshot '%s'...", snapshot)
                     try:
                         self.vag.snapshot_delete(snapshot)
