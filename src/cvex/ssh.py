@@ -37,6 +37,17 @@ class SSH:
         message.add_string(signal.Signals.SIGTERM.name[3:])
         runner.channel.transport._send_user_message(message)
 
+    def _log_output(self, log: str, show_progress: bool, output_file: Path | None):
+        if not log:
+            return
+        if show_progress:
+            self.log.info("%s", log)
+        else:
+            self.log.debug("%s", log)
+        if output_file:
+            with open(output_file, "a") as f:
+                f.write(log)
+
     def run_command(self,
                     command: str,
                     is_async: bool = False,
@@ -53,23 +64,11 @@ class SSH:
                     printed_stdout_end = len(result.runner.stdout)
                     printed_stderr_end = len(result.runner.stderr)
                     for i in range(printed_stdout, printed_stdout_end):
-                        if show_progress:
-                            self.log.info("%s", result.runner.stdout[i])
-                        else:
-                            self.log.debug("%s", result.runner.stdout[i])
-                        if output_file:
-                            with open(output_file, "a") as f:
-                                f.write(result.runner.stdout[i])
+                        self._log_output(result.runner.stdout[i], show_progress, output_file)
                         if until in result.runner.stdout[i]:
                             return result.runner
                     for i in range(printed_stderr, printed_stderr_end):
-                        if show_progress:
-                            self.log.info("%s", result.runner.stderr[i])
-                        else:
-                            self.log.debug("%s", result.runner.stderr[i])
-                        if output_file:
-                            with open(output_file, "a") as f:
-                                f.write(result.runner.stderr[i])
+                        self._log_output(result.runner.stderr[i], show_progress, output_file)
                         if until in result.runner.stderr[i]:
                             return result.runner
                     printed_stdout = printed_stdout_end
@@ -78,23 +77,13 @@ class SSH:
             return result.runner
         else:
             result = self.ssh.run(command, hide=True)
-            if result.stdout:
-                if show_progress:
-                    self.log.info("%s", result.stdout)
-                else:
-                    self.log.debug("%s", result.stdout)
-                if output_file:
-                    with open(output_file, "a") as f:
-                        f.write(result.stdout)
-            if result.stderr:
-                if show_progress:
-                    self.log.info("%s", result.stderr)
-                else:
-                    self.log.debug("%s", result.stderr)
-                if output_file:
-                    with open(output_file, "a") as f:
-                        f.write(result.stderr)
-            return result.stdout
+            if result.stdout and result.stderr:
+                self._log_output("stdout:", show_progress, output_file)
+            self._log_output(result.stdout, show_progress, output_file)
+            if result.stdout and result.stderr:
+                self._log_output("stderr:", show_progress, output_file)
+            self._log_output(result.stderr, show_progress, output_file)
+            return result.stdout + result.stderr
 
     def upload_file(self, local: str, dest: str):
         self.log.info("Uploading %s -> %s...", local, dest)
