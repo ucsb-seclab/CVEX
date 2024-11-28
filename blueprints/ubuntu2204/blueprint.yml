@@ -1,4 +1,4 @@
 ubuntu:
   image: "bento/ubuntu-22.04"
   version: "202404.23.0"
-  type: "linux"
+  type: "ubuntu"
