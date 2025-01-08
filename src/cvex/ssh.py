@@ -16,7 +16,36 @@ class SSH:
     def __init__(self, vm: vagrant.Vagrant, vm_name: str):
         self.log = get_logger(vm_name)
         self.ssh = self._ssh_connect(vm)
+        self.vm = vm
 
+    def _reconnect(self, retries=5, delay=2):
+        for attempt in range(retries):
+            try:
+                self.log.info("Reconnecting to SSH (Attempt %d/%d)...", attempt + 1, retries)
+                self.ssh.close()  # Close the existing connection
+                self.ssh = self._ssh_connect(self.vm)  # Re-establish the connection
+                self.log.info("Reconnection successful!")
+                return
+            except Exception as e:
+                self.log.warning("Reconnection failed: %s. Retrying in %d seconds...", e, delay)
+                time.sleep(delay)
+
+        raise RuntimeError(f"Failed to reconnect to SSH after {retries} attempts.")
+
+    def _reconnect(self, retries=5, delay=2):
+        for attempt in range(retries):
+            try:
+                self.log.info("Reconnecting to SSH (Attempt %d/%d)...", attempt + 1, retries)
+                self.ssh.close()  # Close the existing connection
+                self.ssh = self._ssh_connect(self.vm)  # Re-establish the connection
+                self.log.info("Reconnection successful!")
+                return
+            except Exception as e:
+                self.log.warning("Reconnection failed: %s. Retrying in %d seconds...", e, delay)
+                time.sleep(delay)
+
+        raise RuntimeError(f"Failed to reconnect to SSH after {retries} attempts.")
+    
     def _ssh_connect(self, vm: vagrant.Vagrant) -> fabric.Connection:
         self.log.debug("Retrieving SSH configuration...")
         hostname = vm.hostname()
@@ -86,9 +115,31 @@ class SSH:
             return result.stdout + result.stderr
 
     def upload_file(self, local: str, dest: str):
+        """
+        Upload a file to the remote server. Retry on connection loss.
+        """
         self.log.info("Uploading %s -> %s...", local, dest)
-        self.ssh.put(local, dest)
+        try:
+            self.ssh.put(local, dest)
+        except (paramiko.SSHException, OSError) as e:
+            if "Socket is closed" in str(e):
+                self.log.warning("SSH connection lost during upload. Attempting to reconnect...")
+                self._reconnect()
+                self.put(local,dest)
+            else:
+                raise
 
     def download_file(self, local: str, dest: str):
+        """
+        Download a file from the remote server. Retry on connection loss.
+        """
         self.log.info("Downloading %s -> %s...", dest, local)
-        self.ssh.get(dest, local)
+        try:
+            self.ssh.get(dest, local)
+        except (paramiko.SSHException, OSError) as e:
+            if "Socket is closed" in str(e):
+                self.log.warning("SSH connection lost during download. Attempting to reconnect...")
+                self._reconnect()
+                self.get(dest,local)
+            else:
+                raise
