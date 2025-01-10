@@ -126,6 +126,19 @@ class CVEX:
         if arg == "all" or str(vm.destination) == str(arg):
             vm.destroy()
 
+    def _remove_snapshot(self, vm: VM, i: int, arg):
+        try:
+            snapshots = vm.vag.snapshot_list()
+            vm._print_vagrant_log(logging.DEBUG)
+        except:
+            vm._print_vagrant_log(logging.CRITICAL)
+            sys.exit(1)
+        for snapshot in snapshots:
+            if "default" in snapshot or snapshot == INIT_SNAPSHOT:
+                continue
+            if arg == "all" or arg in snapshot:
+                vm.remove_snapshot(snapshot)
+
     def _enum_vms(self, callback, arg = None) -> int:
         images = [f.name for f in os.scandir(CVEX_ROOT) if f.is_dir()]
         if not images:
@@ -195,6 +208,7 @@ class CVEX:
         parser.add_argument("-v", "--verbose", help="Verbose logs", default=False, action="store_true")
         parser.add_argument("-k", "--keep", help="Keep VMs running", default=False, action="store_true")
         parser.add_argument("-n", "--new", help="Regenerate snapshots", default=False, action="store_true")
+        parser.add_argument("-r", "--remove", help="Partial name of the snapshot to remove or \"all\"")
         args = parser.parse_args()
 
         if args.verbose:
@@ -208,6 +222,11 @@ class CVEX:
 
         if args.list:
             if not self._enum_vms(self._list_vm):
+                self.log.info("There are no cached VMs")
+            sys.exit(0)
+
+        if args.remove:
+            if not self._enum_vms(self._remove_snapshot, args.remove):
                 self.log.info("There are no cached VMs")
             sys.exit(0)
 

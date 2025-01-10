@@ -412,3 +412,12 @@ class VM:
 
     def exists(self):
         return Path(self.destination, "Vagrantfile").exists()
+
+    def remove_snapshot(self, snapshot: str):
+        self.log.info("Removing snapshot %s...", snapshot)
+        try:
+            self.vag.snapshot_delete(snapshot)
+            self._print_vagrant_log(logging.DEBUG)
+        except:
+            self._print_vagrant_log(logging.CRITICAL)
+            sys.exit(1)
