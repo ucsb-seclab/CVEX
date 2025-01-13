@@ -1,0 +1,8 @@
+debian1:
+  image: "bento/debian-7.11"
+  version: "201806.08.0"
+  type: "debian"
+debian2:
+  image: "bento/debian-7.11"
+  version: "201806.08.0"
+  type: "debian"

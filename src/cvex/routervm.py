@@ -12,7 +12,7 @@ class RouterVM(LinuxVM):
         template = VMTemplate(ROUTER_VM_NAME,
                               ROUTER_VM_IMAGE,
                               ROUTER_VM_VERSION,
-                              VMTemplate.VM_TYPE_LINUX)
+                              VMTemplate.VM_TYPE_UBUNTU)
         super().__init__([], template, "", destination=ROUTER_VM_DESTINATION, keep=keep, new=new)
 
     def init(self, router: VM | None = None):

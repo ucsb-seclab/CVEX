@@ -13,7 +13,8 @@ from cvex.ssh import SSH
 
 
 class VMTemplate:
-    VM_TYPE_LINUX = "linux"
+    VM_TYPE_UBUNTU = "ubuntu"
+    VM_TYPE_DEBIAN = "debian"
     VM_TYPE_WINDOWS = "windows"
     VM_TYPE_UNKNOWN = "unknown"
 
@@ -38,11 +39,11 @@ class VMTemplate:
         self.vm_name = vm_name
         self.image = image
         self.version = version
-        if vm_type != self.VM_TYPE_LINUX and vm_type != self.VM_TYPE_WINDOWS:
+        if vm_type != self.VM_TYPE_UBUNTU and vm_type != self.VM_TYPE_DEBIAN and vm_type != self.VM_TYPE_WINDOWS:
             self.log.critical("Unknown VM type: %r", vm_type)
             sys.exit(1)
         self.vm_type = vm_type
-        if vm_type == self.VM_TYPE_LINUX and trace:
+        if self.is_linux() and trace:
             try:
                 re.compile(trace)
             except:
@@ -55,6 +56,9 @@ class VMTemplate:
                 sys.exit(1)
         self.playbooks = playbooks
         self.command = command
+
+    def is_linux(self):
+        return self.vm_type == self.VM_TYPE_UBUNTU or self.vm_type == self.VM_TYPE_DEBIAN
 
 
 current_ip = 2
