@@ -1,4 +1,4 @@
 ubuntu:
-  image: "bento/ubuntu-18.04"
-  version: "202303.13.0"
+  image: "cvex/ubuntu-18.04"
+  version: "0.0.1"
   type: "linux"

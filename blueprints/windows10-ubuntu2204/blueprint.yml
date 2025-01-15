@@ -3,6 +3,6 @@ windows:
   version: "2202.0.2404"
   type: "windows"
 ubuntu:
-  image: "bento/ubuntu-22.04"
-  version: "202404.23.0"
+  image: "cvex/ubuntu-22.04"
+  version: "0.0.1"
   type: "linux"

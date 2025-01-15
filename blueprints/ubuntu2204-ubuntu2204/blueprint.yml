@@ -1,8 +1,8 @@
 ubuntu1:
-  image: "bento/ubuntu-22.04"
-  version: "202404.23.0"
+  image: "cvex/ubuntu-22.04"
+  version: "0.0.1"
   type: "linux"
 ubuntu2:
-  image: "bento/ubuntu-22.04"
-  version: "202404.23.0"
+  image: "cvex/ubuntu-22.04"
+  version: "0.0.1"
   type: "linux"
